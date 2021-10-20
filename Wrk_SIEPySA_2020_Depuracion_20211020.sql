@@ -20,12 +20,13 @@ CREATE OR REPLACE FUNCTION dta_uio.d1ow(numeric) returns smallint AS
 -- $1=a?o 
 $body$ SELECT extract(dow from date (to_char($1,'9999')||'/01/01'))::smallint $body$ 
 LANGUAGE sql IMMUTABLE;
-
+ 
 CREATE OR REPLACE FUNCTION dta_uio.C1(numeric) returns integer AS 
 -- $1=a?o 
 $body$ SELECT case dta_uio.d1ow($1) when 0 then -1 when 1 then 0 when 2 then 1 when 3 then 2 when 4 then -4 when 5 then -3 when 6 then -2 end $body$ 
 LANGUAGE sql IMMUTABLE; 
 
+--4. permite cambiar formato de fecha
 CREATE OR REPLACE FUNCTION dta_uio.smn(numeric, numeric, numeric) returns numeric AS 
 -- $1=a?o, $2=mes, $3=dia 
 $body$ SELECT floor(((extract(doy from to_date((to_char($1, '9999')||to_char($2,'00')||to_char($3,'00')),'YYYYMMDD'))::integer+dta_uio.C1($1))::numeric/7::numeric))+1 $body$ 
@@ -144,7 +145,7 @@ WHERE fecha_atencion NOTNULL AND "Fecha_nac" NOTNULL AND "Fecha_nac" = '10/10/20
 --GROUP BY 1,2
 ORDER BY 1 DESC ;
 
-
+--->13. permite validar y calcular la edad segun la fecha de nacimiento, toma los valores de lafecha de nacimito que estan escritas de 6,7 y 8 digitos las compara y toma el año en formato de 2 digitos y las completa con el 19 o 20 según el caso 1999 o 2001
 WITH 
 tmp01 AS (
 SELECT
@@ -194,7 +195,7 @@ WHERE date_part('year', age(to_date('2020-12-31', 'yyyy-MM-dd'), d_prs_dte_brt))
 ORDER BY 2;
 
 
-
+-->14. toma los valores de lafecha de nacimito que estan escritas de 6 digitos las compara y toma el año en foemato de 2 digitos y las completa con el 19 o 20 según el caso 1999 o 2001
 SELECT 
   "Fecha_nac",
   CASE 
@@ -210,7 +211,7 @@ SELECT * FROM dta_uio.data_2020 LIMIT 10;
 
 
 
-
+--15. valida espacios en blaclo /, 0, n, no, sn, en el campo de presion arterial los cambia por null o corrige /
 SELECT  
   presion_art, 
   CASE WHEN presion_art = '' THEN NULL
@@ -230,7 +231,7 @@ SELECT
  END, SPLIT_PART(presion_art, '/', 2), count(*) 
 FROM dta_uio.data_2020 GROUP BY 1 ORDER BY 1;
 
---- 2. Construyendo la vista
+--- 2. Construyendo la vista, 
 CREATE OR REPLACE VIEW tst_ptt AS 
 SELECT 
   RIGHT(dta_uio.smn_epd(date_part('year'::text, fecha_atencion::date)::numeric, date_part('month'::text, fecha_atencion::date)::numeric, date_part('day'::text, fecha_atencion::date)::numeric)::text, 2)::smallint AS i_epi_wk,
@@ -282,7 +283,7 @@ FROM dta_uio.data_2020
 WHERE fecha_atencion NOTNULL 
 ORDER BY 1,2,3;
 
-
+--16. crecion de tablas para validacion en la dinardap, segmentado si las cedulas son validas y si permitio compltar los digitos de cedulas comenzadas en 0  
 CREATE TABLE dta_tbl_prs(
   s_prs_idn TEXT
 )
@@ -299,11 +300,12 @@ CREATE TABLE dta_tbl_prs_all(
   s_prs_idn TEXT
 )
 
-
+--17. eliminacion de tablas para la busqueda en la dinardap de cedulas
 DELETE FROM dta_tbl_prs;
 DELETE FROM dta_tbl_prs_10;
 DELETE FROM dta_tbl_prs_09;
 DELETE FROM dta_tbl_prs_all;
+--17.1 consultas de talbas creadas apara validación de informacion generada.
 SELECT * FROM dta_tbl_prs;
 
 SELECT length(trim(BOTH s_prs_idn)), count(*) FROM tst_ptt group BY 1 ORDER BY 1; 
@@ -314,6 +316,7 @@ SELECT length(trim(BOTH s_prs_idn)), count(8) FROM dta_tbl_prs_all group BY 1 OR
 
 SELECT * FROM dta_tbl_prs_10;
 
+--17.2 creacion de la nueva tabla persona dinardap
 CREATE SEQUENCE dta_sqn_prs_dnr;
 
 ALTER SEQUENCE dta_sqn_prs_dnr
