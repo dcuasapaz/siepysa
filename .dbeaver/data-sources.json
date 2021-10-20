@@ -1,0 +1,44 @@
+{
+	"folders": {},
+	"connections": {
+		"postgres-jdbc-17c9df4468c-4c5988a21c7dc9cc": {
+			"provider": "postgresql",
+			"driver": "postgres-jdbc",
+			"name": "siepysa",
+			"save-password": true,
+			"read-only": false,
+			"configuration": {
+				"host": "localhost",
+				"port": "65503",
+				"database": "siepysa",
+				"url": "jdbc:postgresql://localhost:65503/siepysa",
+				"home": "postgresql-x64-13",
+				"type": "dev",
+				"provider-properties": {
+					"@dbeaver-show-non-default-db@": "false",
+					"@dbeaver-show-template-db@": "false",
+					"@dbeaver-show-unavailable-db@": "false",
+					"show-database-statistics": "false",
+					"@dbeaver-read-all-data-types-db@": "false",
+					"@dbeaver-use-prepared-statements-db@": "false",
+					"postgresql.dd.plain.string": "false",
+					"postgresql.dd.tag.string": "false",
+					"@dbeaver-chosen-role@": "siepysa"
+				},
+				"auth-model": "native",
+				"handlers": {}
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"auto-close-transactions": false
+		}
+	}
+}
