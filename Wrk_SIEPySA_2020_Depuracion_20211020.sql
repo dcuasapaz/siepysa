@@ -15,7 +15,9 @@ CREATE OR REPLACE FUNCTION dta_uio.sif_sql(BOOLEAN, text, text) returns TEXT AS
 $body$ SELECT case $1 when true then $2 else $3 end $body$
 LANGUAGE sql IMMUTABLE;
 
--- semana epidemiologica
+-----------------------------------------------------------------------------------------------------------------------------------------------
+-- Funcion: Semana epidemiologica
+-----------------------------------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION dta_uio.d1ow(numeric) returns smallint AS 
 -- $1=a?o 
 $body$ SELECT extract(dow from date (to_char($1,'9999')||'/01/01'))::smallint $body$ 
@@ -47,7 +49,9 @@ dta_uio.iif_sql(
 (($1-1)*100)+dta_uio.smn($1-1,12,31), 
 ($1*100)+dta_uio.smn($1,$2,$3)))) $body$ 
 LANGUAGE sql IMMUTABLE; 
-
+-----------------------------------------------------------------------------------------------------------------------------------------------
+-- SQL --> Limpieza de datos
+-----------------------------------------------------------------------------------------------------------------------------------------------
 --- 1. Contando los campos
 -- --> 1. sem_epi: Calculo de la semana epidemiologica con fecha de atencion 
 -- --> 2. fecha_atencion: Cast de fecha de atencion de text a date conservando el formato
@@ -82,27 +86,27 @@ WHERE fecha_atencion NOTNULL
 GROUP BY 1
 ORDER BY 1 ;
 
--- --> 9. Autoidentificaci髇: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros
+-- --> 9. Autoidentificaci贸n: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros
 SELECT
-  (CASE WHEN upper(trim(BOTH FROM "Autoidentificaci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Autoidentificaci髇")) END)::TEXT  AS s_prs_eth,
+  (CASE WHEN upper(trim(BOTH FROM "Autoidentificaci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Autoidentificaci贸n")) END)::TEXT  AS s_prs_eth,
   Count(*)
 FROM dta_uio.data_2020
 WHERE fecha_atencion NOTNULL 
 GROUP BY 1
 ORDER BY 1 ;
 
--- --> 10. Instrucci髇: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros
+-- --> 10. Instrucci贸n: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros
 SELECT
-  (CASE WHEN upper(trim(BOTH FROM "Instrucci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Instrucci髇")) END)::TEXT  AS s_prs_ins,
+  (CASE WHEN upper(trim(BOTH FROM "Instrucci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Instrucci贸n")) END)::TEXT  AS s_prs_ins,
   Count(*)
 FROM dta_uio.data_2020
 WHERE fecha_atencion NOTNULL 
 GROUP BY 1
 ORDER BY 1 ;
 
--- --> 11. Ocupaci髇: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros, falta correccion de palabras repetidas con diferente escritura
+-- --> 11. Ocupaci贸n: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros, falta correccion de palabras repetidas con diferente escritura
 SELECT
-  (CASE WHEN upper(trim(BOTH FROM "Ocupaci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Ocupaci髇")) END)::TEXT  AS s_prs_ocp,
+  (CASE WHEN upper(trim(BOTH FROM "Ocupaci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Ocupaci贸n")) END)::TEXT  AS s_prs_ocp,
   Count(*)
 FROM dta_uio.data_2020
 WHERE fecha_atencion NOTNULL 
@@ -270,9 +274,9 @@ SELECT
       END 
    END) AS d_prs_dte_brt,
    "Edad"::SMALLINT AS i_prs_dte_brt_yr,
-  (CASE WHEN upper(trim(BOTH FROM "Autoidentificaci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Autoidentificaci髇")) END)::TEXT  AS s_prs_eth,
-  (CASE WHEN upper(trim(BOTH FROM "Instrucci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Instrucci髇")) END)::TEXT  AS s_prs_ins,
-  (CASE WHEN upper(trim(BOTH FROM "Ocupaci髇")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Ocupaci髇")) END)::TEXT  AS s_prs_ocp,
+  (CASE WHEN upper(trim(BOTH FROM "Autoidentificaci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Autoidentificaci贸n")) END)::TEXT  AS s_prs_eth,
+  (CASE WHEN upper(trim(BOTH FROM "Instrucci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Instrucci贸n")) END)::TEXT  AS s_prs_ins,
+  (CASE WHEN upper(trim(BOTH FROM "Ocupaci贸n")) = '' THEN NULL ELSE upper(trim(BOTH FROM "Ocupaci贸n")) END)::TEXT  AS s_prs_ocp,
   SPLIT_PART(presion_art, '/', 1) AS r_sgn_prs_stl, --dst
   "Frec_card"::numeric AS r_sgn_frc_crd,
   "Frec_resp"::numeric AS r_sgn_frc_rsp,
