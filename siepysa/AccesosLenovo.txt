@@ -1,0 +1,10 @@
+---------------------------------------
+PostgreSQL 13
+User: postgres
+Password: Pst!Lcl
+Port: 65503
+---------------------------------------
+JEAP.7.2
+User: webadmin
+Password: Pst!Lcl
+---------------------------------------
