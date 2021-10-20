@@ -25,10 +25,8 @@
 					"postgresql.dd.tag.string": "false",
 					"@dbeaver-chosen-role@": "siepysa"
 				},
-				"auth-model": "native"
-			},
-			"custom-properties": {
-				"resultset.maxrows": "10000"
+				"auth-model": "native",
+				"handlers": {}
 			}
 		}
 	},
