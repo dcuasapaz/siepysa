@@ -166,7 +166,7 @@ FROM dta_uio.data_2020 GROUP BY 1 ORDER BY 1;
 -- Comment --> Vista consolidada de los datos 2020
 --*******************************************************************************************************************************************--
 ---> CREATE: Crear la vista con los campos depurados anteriormente
-DROP MATERIALIZED VIEW dta_uio.data_2020_str;
+DROP MATERIALIZED VIEW dta_uio.data_2020_fnt;
 CREATE MATERIALIZED VIEW dta_uio.data_2020_fnt AS 
 SELECT "right"(dta_uio.smn_epd(date_part('year'::text, data_2020.fecha_atencion::date)::numeric, date_part('month'::text, data_2020.fecha_atencion::date)::numeric, date_part('day'::text, data_2020.fecha_atencion::date)::numeric)::text, 2)::smallint AS i_fnt_epi_wk,
     data_2020.fecha_atencion::date AS d_fnt_uio_dte_att,
@@ -175,9 +175,9 @@ SELECT "right"(dta_uio.smn_epd(date_part('year'::text, data_2020.fecha_atencion:
             WHEN data_2020."Brigada_Num"::text = ' '::text THEN NULL::character varying
             ELSE data_2020."Brigada_Num"
         END::text AS s_fnt_brg_nmb,
-    data_2020."PARROQUIA"::text AS s_fnt_brg_prq_nme,
     data_2020."RED_GRUP"::text AS s_fnt_brg_att_grp,
     data_2020."Grupoa_atencion"::text AS s_fnt_brg_att_grp_sub,
+    data_2020."PARROQUIA"::text AS s_fnt_prq_att,
     upper(btrim(data_2020."ID"::text)) AS s_fnt_prs_idn,
     length(upper(btrim(data_2020."ID"::text)))::smallint AS i_fnt_prs_idn_lng,
     upper(btrim(data_2020.nombre::text)) AS s_fnt_prs_nme,
@@ -384,11 +384,12 @@ SELECT
   split_part(s_prs_adr, '/',3) AS s_dnr_prs_prq_nme
 FROM dta_tbl_prs_dnr prs_dnr ORDER BY 1)
 SELECT
-  date_part('year', prs.d_fnt_uio_dte_att) AS i_fnt_yr,
+  date_part('year', prs.d_fnt_uio_dte_att)::SMALLINT AS i_fnt_yr,
   prs.i_fnt_epi_wk,
   prs.d_fnt_uio_dte_att AS d_fnt_prs_dte_att,
   prs.s_fnt_brg_att_grp,
   prs.s_fnt_brg_att_grp_sub,
+  prs.s_fnt_prq_att,
   prs.s_fnt_brg_nmb,
   prs.s_fnt_prs_idn,
   tmp01.s_dnr_prs_idn,
@@ -403,14 +404,14 @@ SELECT
   prs.d_fnt_prs_dte_brt::TEXT AS s_fnt_prs_dte_brt,
   tmp01.d_dnr_prs_dte_brt,  
   prs.i_fnt_prs_dte_brt_yr::TEXT AS s_fnt_prs_dte_brt_yr,
-  date_part('year', age(prs.d_fnt_uio_dte_att , prs.d_fnt_prs_dte_brt)) AS i_fnt_prs_brt_yr,
-  date_part('month', age(prs.d_fnt_uio_dte_att, prs.d_fnt_prs_dte_brt)) AS i_fnt_prs_brt_mth,
-  date_part('day', age(prs.d_fnt_uio_dte_att, prs.d_fnt_prs_dte_brt)) AS i_fnt_prs_brt_day,
+  date_part('year', age(prs.d_fnt_uio_dte_att , prs.d_fnt_prs_dte_brt))::SMALLINT AS i_fnt_prs_brt_yr,
+  date_part('month', age(prs.d_fnt_uio_dte_att, prs.d_fnt_prs_dte_brt))::SMALLINT AS i_fnt_prs_brt_mth,
+  date_part('day', age(prs.d_fnt_uio_dte_att, prs.d_fnt_prs_dte_brt))::SMALLINT AS i_fnt_prs_brt_day,
   prs.s_fnt_prs_age_grp,
   dta_uio.age_grp(prs.d_fnt_uio_dte_att, prs.d_fnt_prs_dte_brt) AS s_fnt_prs_age_grp_clc,
-  date_part('year', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_yr,
-  date_part('month', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_mth,
-  date_part('day', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_day,
+  date_part('year', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_yr,
+  date_part('month', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_mth,
+  date_part('day', age(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_day,
   dta_uio.age_grp(prs.d_fnt_uio_dte_att, tmp01.d_dnr_prs_dte_brt) AS s_dnr_prs_age_grp_clc,
   tmp01.d_dnr_prs_dte_dfn,
   tmp01.s_dnr_prs_stt,
@@ -425,14 +426,14 @@ SELECT
   dta_uio.sif_sql(prs.s_fnt_prs_rsd_prv_nme ISNULL, tmp01.s_dnr_prs_prv_nme,  prs.s_fnt_prs_rsd_prv_nme) AS s_gnr_prs_rsd_prv_nme,
   dta_uio.sif_sql(prs.s_fnt_prs_rsd_prq_nme ISNULL, tmp01.s_dnr_prs_prq_nme,  prs.s_fnt_prs_rsd_prq_nme) AS s_gnr_prs_rsd_prq_nme,
   prs.s_fnt_prs_trv,
-  prs.d_fnt_prs_trv_dte,
+  prs.d_fnt_prs_trv_dte::TEXT AS s_fnt_prs_trv_dte,
   prs.s_fnt_prs_trv_ste,
   prs.r_fnt_sgn_prs_stl::text AS s_fnt_sgn_prs_stl,
   prs.r_fnt_sgn_prs_dst::text AS s_fnt_sgn_prs_dst,
-  prs.r_fnt_sgn_frc_crd AS i_fnt_sgn_frc_crd,
-  prs.r_fnt_sgn_frc_rsp AS i_fnt_sgn_frc_rsp,
-  prs.r_fnt_sgn_str_oxg AS i_fnt_sgn_str_oxg,
-  prs.r_fnt_sgn_tpr::double PRECISION AS r_fnt_sgn_tpr,
+  prs.r_fnt_sgn_frc_crd::smallint AS i_fnt_sgn_frc_crd,
+  prs.r_fnt_sgn_frc_rsp::smallint AS i_fnt_sgn_frc_rsp,
+  prs.r_fnt_sgn_str_oxg::smallint AS i_fnt_sgn_str_oxg,
+  prs.r_fnt_sgn_tpr::NUMERIC AS r_fnt_sgn_tpr,
   prs.s_fnt_prs_qst_dsc,
   prs.s_fnt_prs_qst_cse,
   prs.s_fnt_prs_qst_snt,
@@ -464,7 +465,7 @@ SELECT
     prs.s_fnt_smp_tpe,
     prs.d_fnt_smp_dte_tke::text AS s_fnt_smp_dte_tke,
     prs.s_fnt_smp_prm,
-    prs.s_fnt_smp_rsl,
+    btrim(CASE WHEN prs.s_fnt_smp_rsl = '' THEN NULL ELSE prs.s_fnt_smp_rsl END) AS s_fnt_smp_rsl,
     NULL AS s_fnt_smp_igm,
     NULL AS s_fnt_smp_igg,
     prs.s_fnt_prs_eml,
@@ -477,7 +478,8 @@ SELECT
     prs.s_fnt_prs_enc_07,
     prs.s_fnt_prs_asl,
     prs.s_fnt_prs_rsp_lnd,
-    prs.s_fnt_prs_dtl
+    prs.s_fnt_prs_dtl,
+    Count(*)::SMALLINT AS i_ttl_dpl
 FROM dta_uio.data_2020_fnt prs
 FULL JOIN tmp01 ON tmp01.s_dnr_prs_idn = prs.s_fnt_prs_idn
 GROUP BY 
@@ -485,33 +487,9 @@ GROUP BY
   21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
   41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,
   61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,
-  81,82,83,84,85,86,87,88,89,90,91,92,93,94
+  81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,prs.s_fnt_smp_rsl
  ORDER BY 1,2,prs.s_fnt_smp_rsl DESC;
 
-CREATE OR REPLACE VIEW dta_uio.data_gnr AS 
-SELECT * FROM dta_uio.data_2020_gnr
-UNION
-SELECT * FROM dta_uio.data_2021_gnr
-ORDER BY 1,2,3;
-
-
-SELECT
-    t1.COLUMN_NAME AS s_tbl_atr,
-    t1.COLUMN_DEFAULT AS s_tbl_dlf,
-    t1.IS_NULLABLE AS s_tbl_nll,
-    t1.DATA_TYPE AS s_tbl_tpe,
-    COALESCE(t1.NUMERIC_PRECISION,
-    t1.CHARACTER_MAXIMUM_LENGTH) AS i_tbl_lgt,
-    PG_CATALOG.COL_DESCRIPTION(t2.OID,
-    t1.DTD_IDENTIFIER::int) AS i_tbl_dsc
-FROM 
-    INFORMATION_SCHEMA.COLUMNS t1
-    INNER JOIN PG_CLASS t2 ON (t2.RELNAME = t1.TABLE_NAME)
-WHERE 
-    t1.TABLE_SCHEMA = 'dta_uio' AND
-    t1.TABLE_NAME = 'data_2021_gnr'
-ORDER BY
-t1.ORDINAL_POSITION;
 --*******************************************************************************************************************************************--
 -- Autor --> DC
 -- Date --> 2021-10-21
@@ -527,12 +505,15 @@ SELECT
 2020::SMALLINT AS i_yr, -- Anio
 (SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) AS i_ttl_ptt, -- Total pacientes (registros) 
 (SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) - (SELECT count(*) FROM dta_uio.data_2020_gnr) AS i_ttl_ptt_dpl, -- Total pacientes (registros) duplicados
+(SELECT count(*) FROM dta_uio.data_2020_gnr) AS i_ttl_ptt_dpl_no, -- Total pacientes (registros), no duplicados, registros para trabajar 
 (SELECT Count(*) FROM dta_tbl_prs) AS i_ttl_ptt_idn_vld, -- Total pacientes (registros) validados con algoritmo para validar cedula ecuatoriana
 (SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) - (SELECT Count(*) FROM dta_tbl_prs) AS i_ttl_ptt_idn_oth, -- Total pacientes (registros) otras identificaciones
 (SELECT Count(*) FROM dta_tbl_prs_dnr) AS i_ttl_ptt_idn_dnr_ok, -- Total pacientes (registros), validados con la dinardap (datos correctos, usando la cedula)
 (SELECT Count(*) FROM dta_tbl_prs) - (SELECT Count(*) FROM dta_tbl_prs_dnr)  AS i_ttl_ptt_idn_dnr_error, -- Total pacientes (registros), no se encontraron en dinardap 
 (SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) - (SELECT Count(*) FROM dta_tbl_prs) + (SELECT Count(*) FROM dta_tbl_prs) - (SELECT Count(*) FROM dta_tbl_prs_dnr) AS i_ttl_ptt_idn_vrf, -- Total pacientes (registros), para verificar
 (SELECT count(*) FROM dta_uio.data_2020_gnr WHERE s_dnr_prs_idn ISNULL) AS i_ttl_ptt_vrf -- Total pacientes (registros), pacientes que no tienen registro en dinardap (no se validaron), pueden estar duplicados;
-
-
 (SELECT s_dnr_prs_idn, count(*) FROM dta_uio.data_2020_gnr WHERE s_dnr_prs_idn ISNULL GROUP BY 1);
+
+
+
+

@@ -15,16 +15,21 @@ FROM dta_uio.data_2021_id GROUP BY 1 HAVING min(d_prs_dte_att) NOTNULL;
 ---> READ: Consulta que me permite ver el resumen de datos obtenidos de la data 2020
 SELECT 
 2021::SMALLINT AS i_yr, -- Anio
-(SELECT count(*) FROM dta_uio.data_2021) AS i_ttl_ptt, -- Total pacientes (registros) 
---(SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) - (SELECT count(*) FROM dta_uio.data_2020_gnr) AS i_ttl_ptt_dpl, -- Total pacientes (registros) duplicados
-(WITH tmp01 AS (SELECT s_prs_idn, Count(*) FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_vld, -- Total pacientes (registros) validados con algoritmo para validar cedula ecuatoriana
-(SELECT count(*) FROM dta_uio.data_2021) - (SELECT Count(*) FROM dta_uio.dta_tbl_prs_idn_2021) AS i_ttl_ptt_idn_oth, -- Total pacientes (registros) otras identificaciones
-(WITH tmp01 AS (SELECT s_prs_idn, Count(*) FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_dnr_ok, -- Total pacientes (registros), validados con la dinardap (datos correctos, usando la cedula)
-(WITH tmp01 AS (SELECT s_prs_idn, Count(*) FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) - 
-(WITH tmp01 AS (SELECT s_prs_idn, Count(*) FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01)AS i_ttl_ptt_idn_dnr_error; -- Total pacientes (registros), no se encontraron en dinardap 
---(SELECT count(*) FROM dta_uio.data_2020 WHERE fecha_atencion NOTNULL) - (SELECT Count(*) FROM dta_tbl_prs) + (SELECT Count(*) FROM dta_tbl_prs) - (SELECT Count(*) FROM dta_tbl_prs_dnr) AS i_ttl_ptt_idn_vrf, -- Total pacientes (registros), para verificar
---(SELECT count(*) FROM dta_uio.data_2020_gnr WHERE s_dnr_prs_idn ISNULL) AS i_ttl_ptt_vrf -- Total pacientes (registros), pacientes que no tienen registro en dinardap (no se validaron), pueden estar duplicados;
+(SELECT count(*) FROM dta_uio.data_2021) AS i_ttl_ptt,
+(SELECT count(*) FROM dta_uio.data_2021) - (SELECT count(*) FROM dta_uio.data_2021_gnr) AS i_ttl_ptt_dpl,
+(SELECT count(*) FROM dta_uio.data_2021_gnr) AS i_ttl_ptt_dpl_no,
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_vld,
+(SELECT count(*) FROM dta_uio.data_2021) - (WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_oth,
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_dnr_ok,
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) - 
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_idn_dnr_error,
+(SELECT count(*) FROM dta_uio.data_2021) - (WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) + 
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01) - 
+(WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01) AS i_ttl_ptt_vrf;
 
+
+WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_uio.dta_tbl_prs_idn_2021 GROUP BY 1) SELECT count(*) FROM tmp01;
+WITH tmp01 AS (SELECT s_prs_idn, Count(*) AS i_ttl_ptt_idn FROM dta_tbl_prs_dnr_2021 GROUP BY 1) SELECT count(*) FROM tmp01;
  
  --> 1. Fecha_nac: eliminar espacios en blanco, transformar a mayusculas, poniendo null a lo que no tienen registros, registros con errores de tipeo
 REFRESH MATERIALIZED VIEW dta_uio.data_2021;
@@ -142,8 +147,9 @@ SELECT
        WHEN "left"(data_2021.fec_aten::text, 3) ~~* '%-%'::text THEN to_date(data_2021.fec_aten::text, 'dd-MM-yyyy'::text)
   ELSE to_date(data_2021.fec_aten::text, 'yyyy-MM-dd'::text)
   END AS d_fnt_prs_dte_att,
-  upper(btrim("Grup_aten"::TEXT)) AS s_fnt_brg_att_grp,
-  upper(btrim("PARR_ATEN"::TEXT)) AS s_fnt_brg_att_grp_sub,
+  upper(btrim("RED_GRUP"::TEXT)) AS s_fnt_brg_att_grp,
+  upper(btrim("Grup_aten"::TEXT)) AS s_fnt_brg_att_grp_sub,  
+  upper(btrim("PARR_ATEN"::TEXT)) AS s_fnt_prq_att,
   CASE WHEN "Brig_Num"::TEXT = '0' THEN NULL ELSE upper(btrim("Brig_Num"::TEXT)) END AS s_fnt_brg_nmb,
   CASE WHEN upper(btrim(data_2021."ID"::text)) = '#REF!'::text THEN NULL::text
   ELSE upper(btrim(data_2021."ID"::text))
@@ -258,11 +264,12 @@ SELECT
 FROM dta_tbl_prs_dnr_2021 prs_dnr 
 GROUP BY 1,2,3,4,5,6,7,8,9,10)
 SELECT
-  date_part('year', prs.d_fnt_prs_dte_att) AS i_fnt_yr,
+  date_part('year', prs.d_fnt_prs_dte_att)::SMALLINT AS i_fnt_yr,
   "right"(dta_uio.smn_epd(date_part('year'::text, prs.d_fnt_prs_dte_att)::numeric, date_part('month'::text, prs.d_fnt_prs_dte_att)::numeric, date_part('day'::text, prs.d_fnt_prs_dte_att)::numeric)::text, 2)::smallint AS i_fnt_epi_wk,
   prs.d_fnt_prs_dte_att,
   prs.s_fnt_brg_att_grp,
-  prs.s_fnt_brg_att_grp_sub,
+  prs.s_fnt_brg_att_grp_sub, 
+  prs.s_fnt_prq_att,
   prs.s_fnt_brg_nmb,
   prs.s_fnt_prs_idn,
   tmp01.s_dnr_prs_idn,
@@ -274,17 +281,17 @@ SELECT
   prs.s_fnt_prs_ins,
   prs.s_fnt_prs_ocp,
   tmp01.s_dnr_prs_prf,
-  prs.s_fnt_prs_dte_brt,
+  prs.s_fnt_prs_dte_brt::TEXT AS s_fnt_prs_dte_brt,
   tmp01.d_dnr_prs_dte_brt,  
-  prs.s_fnt_prs_dte_brt_yr,
-  NULL::double precision AS i_fnt_prs_brt_yr,
-  null::double precision AS i_fnt_prs_brt_mth,
-  null::double precision AS i_fnt_prs_brt_day,
+  prs.s_fnt_prs_dte_brt_yr::TEXT AS s_fnt_prs_dte_brt_yr,
+  NULL::SMALLINT AS i_fnt_prs_brt_yr,
+  null::SMALLINT AS i_fnt_prs_brt_mth,
+  null::SMALLINT  AS i_fnt_prs_brt_day,
   prs.s_fnt_prs_age_grp,
   NULL AS s_fnt_prs_age_grp_clc,
-  date_part('year', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_yr,
-  date_part('month', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_mth,
-  date_part('day', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt)) AS i_dnr_prs_brt_day,
+  date_part('year', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_yr,
+  date_part('month', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_mth,
+  date_part('day', age(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt))::SMALLINT AS i_dnr_prs_brt_day,
   dta_uio.age_grp(prs.d_fnt_prs_dte_att, tmp01.d_dnr_prs_dte_brt) AS s_dnr_prs_age_grp_clc,
   tmp01.d_dnr_prs_dte_dfn,
   tmp01.s_dnr_prs_stt,
@@ -299,14 +306,14 @@ SELECT
   dta_uio.sif_sql(prs.s_fnt_prs_rsd_prv_nme ISNULL, tmp01.s_dnr_prs_prv_nme,  prs.s_fnt_prs_rsd_prv_nme) AS s_gnr_prs_rsd_prv_nme,
   dta_uio.sif_sql(prs.s_fnt_prs_rsd_prq_nme ISNULL, tmp01.s_dnr_prs_prq_nme,  prs.s_fnt_prs_rsd_prq_nme) AS s_gnr_prs_rsd_prq_nme,
   prs.s_fnt_prs_trv,
-  prs.d_fnt_prs_trv_dte,
+  prs.d_fnt_prs_trv_dte AS s_fnt_prs_trv_dte,
   prs.s_fnt_prs_trv_ste,
   prs.s_fnt_sgn_prs_stl,
   prs.s_fnt_sgn_prs_dst,
-  prs.i_fnt_sgn_frc_crd,
-  prs.i_fnt_sgn_frc_rsp,
-  prs.i_fnt_sgn_str_oxg,
-  prs.r_fnt_sgn_tpr,
+  prs.i_fnt_sgn_frc_crd::SMALLINT ,
+  prs.i_fnt_sgn_frc_rsp::SMALLINT ,
+  prs.i_fnt_sgn_str_oxg::SMALLINT ,
+  prs.r_fnt_sgn_tpr::NUMERIC,
   prs.s_fnt_prs_qst_dsc,
   prs.s_fnt_prs_qst_cse,
   prs.s_fnt_prs_qst_snt,
@@ -336,9 +343,11 @@ SELECT
     prs.s_fnt_prs_emb_nmb,
     prs.s_fnt_lbr_nme,
     prs.s_fnt_smp_tpe,
-    prs.s_fnt_smp_dte_tke,
+    prs.s_fnt_smp_dte_tke::TEXT AS s_fnt_smp_dte_tke,
     prs.s_fnt_smp_prm,
-    prs.s_fnt_smp_rsl,
+    btrim(CASE WHEN prs.s_fnt_smp_rsl = '' THEN NULL 
+         WHEN prs.s_fnt_smp_rsl = '0' THEN NULL 
+    ELSE prs.s_fnt_smp_rsl END) AS s_fnt_smp_rsl,
     prs.s_fnt_smp_igm,
     prs.s_fnt_smp_igg,
     prs.s_fnt_prs_eml,
@@ -351,7 +360,8 @@ SELECT
     prs.s_fnt_prs_enc_07,
     prs.s_fnt_prs_asl,
     prs.s_fnt_prs_rsp_lnd,
-    prs.s_fnt_prs_dtl
+    prs.s_fnt_prs_dtl, 
+    Count(*)::smallint AS i_ttl_dpl
 FROM dta_uio.data_2021_fnt prs
 LEFT JOIN tmp01 ON tmp01.s_dnr_prs_idn = prs.s_fnt_prs_idn
 GROUP BY 
@@ -359,7 +369,7 @@ GROUP BY
   21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
   41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,
   61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,
-  81,82,83,84,85,86,87,88,89,90,91,92,93,94
+  81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,s_fnt_smp_rsl
  ORDER BY 1,2,prs.s_fnt_smp_rsl DESC;
 
 
