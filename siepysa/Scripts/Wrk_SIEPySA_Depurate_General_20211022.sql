@@ -46,7 +46,7 @@ FROM
     INNER JOIN PG_CLASS t2 ON (t2.RELNAME = t1.TABLE_NAME)
 WHERE 
     t1.TABLE_SCHEMA = 'dta_uio' AND
-    t1.TABLE_NAME = 'data_2020_gnr'
+    t1.TABLE_NAME = 'uio_data_gnr'
 ORDER BY
 t1.ORDINAL_POSITION;
 
@@ -810,7 +810,805 @@ count(*)
 FROM dta_uio.data_gnr
 GROUP BY 1,2,3
 ORDER BY 2 DESC;
+
+SELECT 
+  dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),
+  btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),
+  ((CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT > 1000  THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT > 12  THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT 
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT < 1000 THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT
+       WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT > 12 THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT
+  END))::date
+FROM dta_uio.data_gnr
+GROUP BY 1;
+
+SELECT 
+s_fnt_prs_trv_ste,
+CASE WHEN s_fnt_prs_trv_ste = '' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '-' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '#######' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = ' ' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '6' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '13' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '24' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-04' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-03' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-01' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-06-30' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-06-25' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-05-03' THEN 'SE DESCONOCE'
+ELSE BTRIM(UPPER(s_fnt_prs_trv_ste))
+END,
+count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1;
+
+
+REFRESH MATERIALIZED VIEW dta_uio.data_2020_fnt;
+REFRESH MATERIALIZED VIEW dta_uio.data_2021;
+REFRESH MATERIALIZED VIEW dta_uio.data_2021_fnt;
+REFRESH MATERIALIZED VIEW dta_uio.data_gnr;
+
+SELECT 
+s_fnt_sgn_prs_stl,
+s_fnt_sgn_prs_dst,
+CASE WHEN s_fnt_sgn_prs_stl='' THEN -99
+     WHEN s_fnt_sgn_prs_stl ISNULL THEN -99
+     WHEN s_fnt_sgn_prs_stl='143-' THEN 143
+     WHEN s_fnt_sgn_prs_stl='10p' THEN 100
+     WHEN s_fnt_sgn_prs_stl='130 0' THEN 130
+     WHEN s_fnt_sgn_prs_stl='13q' THEN 130
+     WHEN s_fnt_sgn_prs_stl='1p2' THEN 100
+     WHEN s_fnt_sgn_prs_stl='126 5' THEN 126
+     WHEN s_fnt_sgn_prs_stl='1p0' THEN 100
+     WHEN s_fnt_sgn_prs_stl='14q' THEN 140
+     WHEN s_fnt_sgn_prs_stl='13r' THEN 130
+     WHEN s_fnt_sgn_prs_stl='109t76' THEN 109
+     WHEN s_fnt_sgn_prs_stl='100}' THEN 100
+     WHEN s_fnt_sgn_prs_stl='12p' THEN 120
+     WHEN length(s_fnt_sgn_prs_stl)>3 THEN left(s_fnt_sgn_prs_stl,3)::SMALLINT
+ELSE s_fnt_sgn_prs_stl::integer
+END AS i_gnr_sgn_prs_stl,
+CASE WHEN s_fnt_sgn_prs_dst='' THEN -99
+     WHEN s_fnt_sgn_prs_dst ISNULL THEN -99
+     WHEN s_fnt_sgn_prs_dst = '6(' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '8)' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '8''' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '7(' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '(72' THEN 72
+     WHEN s_fnt_sgn_prs_dst = '(7' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '7,' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '(1' THEN 10
+     WHEN s_fnt_sgn_prs_dst = '72.' THEN 72
+     WHEN s_fnt_sgn_prs_dst = '&80' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '70mw' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '8O' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '6O' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '7O' THEN 70
+     WHEN s_fnt_sgn_prs_dst = 'L75' THEN 75
+     WHEN s_fnt_sgn_prs_dst = '£0' THEN -99
+     WHEN s_fnt_sgn_prs_dst = '6)' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '84!' THEN 84
+     WHEN s_fnt_sgn_prs_dst = '8£' THEN 83
+     WHEN s_fnt_sgn_prs_dst = '78¿7' THEN 78
+     WHEN s_fnt_sgn_prs_dst = '68|' THEN 68
+     WHEN s_fnt_sgn_prs_dst = '8(' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '*97' THEN 97
+     WHEN s_fnt_sgn_prs_dst = '&4' THEN 84
+     WHEN s_fnt_sgn_prs_dst = '7)' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '6$' THEN 65
+     WHEN substring(s_fnt_sgn_prs_dst from 1 for 1) = '7' AND length(s_fnt_sgn_prs_dst)>2 THEN RIGHT(s_fnt_sgn_prs_dst,2)::SMALLINT
+     WHEN length(s_fnt_sgn_prs_dst) > 2 AND s_fnt_sgn_prs_dst::integer > 120 THEN RIGHT(s_fnt_sgn_prs_dst,2)::SMALLINT
+ELSE s_fnt_sgn_prs_dst::integer
+END AS i_gnr_sgn_prs_dst,
+count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1,2
+ORDER BY 4 DESC;
+
+---> READ: Signos vitales
+SELECT 
+   i_fnt_sgn_frc_crd, i_fnt_sgn_frc_rsp, i_fnt_sgn_str_oxg, r_fnt_sgn_tpr,
+   CASE WHEN i_fnt_sgn_frc_crd ISNULL THEN -99 ELSE i_fnt_sgn_frc_crd END AS i_gnr_sgn_frc_crd,
+   CASE WHEN i_fnt_sgn_frc_rsp ISNULL THEN -99 ELSE i_fnt_sgn_frc_rsp END AS i_gnr_sgn_frc_rsp,
+   CASE WHEN i_fnt_sgn_str_oxg ISNULL THEN -99 ELSE i_fnt_sgn_str_oxg END AS i_gnr_sgn_str_oxg,
+   CASE WHEN r_fnt_sgn_tpr ISNULL THEN -99 ELSE r_fnt_sgn_tpr END AS r_gnr_sgn_tpr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1,2,3,4
+ORDER BY 1 DESC;
+
+---> READ: preguntas
+SELECT 
+   s_fnt_prs_qst_dsc,
+   CASE WHEN s_fnt_prs_qst_dsc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = ' ' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '1' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '2' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '3' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_dsc))
+   END AS s_gnr_prs_qst_dsc,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 2 DESC;
+
+SELECT 
+   s_fnt_prs_qst_cse,
+   CASE WHEN s_fnt_prs_qst_cse ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_cse = 'S' THEN 'SI'
+        WHEN s_fnt_prs_qst_cse = 'HatenidocontactoconuncasoconocidodeCOVID19probableoconfirmado' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_cse))
+   END AS s_gnr_prs_qst_cse,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 2 DESC;
+
+
+SELECT 
+   s_fnt_prs_qst_snt,
+   CASE WHEN s_fnt_prs_qst_snt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMÁTICO' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMATICI' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMATICA' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMAS' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOM_TICO' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SI' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'ASINTOMÁTICO' THEN 'ASINTOMATICO'
+   ELSE btrim(upper(s_fnt_prs_qst_snt))
+   END AS s_gnr_prs_qst_snt,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_qst_dgn,
+   CASE WHEN s_fnt_prs_qst_dgn ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = ' ' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44383' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44382' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44381' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44380' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44379' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44378' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44377' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44375' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44348' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44229' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_dgn)) 
+   END s_gnr_prs_qst_dgn,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+SELECT 
+   s_fnt_prs_qst_ifc,
+   CASE WHEN s_fnt_prs_qst_ifc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '1/27/1900' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2/2/1900' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '0999462938 ASIST.' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2118103' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2607700' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2666189' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2911054' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3682562' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3097473' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3084767' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3084268' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3074416' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3036546' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '997743959' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '995034093' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '994423889' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '991384737' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '983911618' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '982807786' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '979404682' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_ifc)) 
+   END AS s_gnr_prs_qst_ifc,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+---> READ: SINTOMAS
+SELECT 
+   s_fnt_prs_snt_fbr,
+   CASE WHEN s_fnt_prs_snt_fbr ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_fbr)) 
+   END AS s_gnr_prs_snt_fbr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_gst_olf,
+   CASE WHEN s_fnt_prs_snt_gst_olf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_gst_olf ='SIO' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_gst_olf)) 
+   END AS s_gnr_prs_snt_gst_olf,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_tos,
+   CASE WHEN s_fnt_prs_snt_tos ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_tos ='AI' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_tos)) 
+   END AS s_gnr_prs_snt_tos,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_dsn ,
+   CASE WHEN s_fnt_prs_snt_dsn ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dsn)) 
+   END AS s_gnr_prs_snt_dsn,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_dlr_grg,
+   CASE WHEN s_fnt_prs_snt_dlr_grg ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr_grg)) 
+   END AS s_gnr_prs_snt_dlr_grg,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_dlr_nse_vmt ,
+   CASE WHEN s_fnt_prs_snt_dlr_nse_vmt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr_nse_vmt = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr_nse_vmt)) 
+   END AS s_gnr_prs_snt_nse_vmt,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_drr ,
+   CASE WHEN s_fnt_prs_snt_drr ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_drr)) 
+   END AS s_gnr_prs_snt_drr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_esc,
+   CASE WHEN s_fnt_prs_snt_esc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_esc = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_esc)) 
+   END AS s_gnr_prs_snt_esc,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_cnf,
+   CASE WHEN s_fnt_prs_snt_cnf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cnf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_cnf)) 
+   END AS s_gnr_prs_snt_cnf,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_snt_dlr ,
+   CASE WHEN s_fnt_prs_snt_dlr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '135453684' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '135220247' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133496559' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133147206' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133140273' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132781030' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132774809' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132764695' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132762302' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132701232' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132329994' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132271360' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr)) 
+   END AS s_gnr_prs_snt_dlr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+SELECT 
+   s_fnt_prs_snt_cns ,
+   CASE WHEN s_fnt_prs_snt_cns ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'EA7AD808-51FC-48FC-91C5-EBD072C19279' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'C0CBE245-117F-46AB-92A4-C06254A04D15' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'B2F91E4C-8C74-425C-9004-536051D628A1' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'AB6B8980-88CB-4A39-BA78-61A1CE420827' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '886DFA62-408D-45F4-A011-F06CFE62AA8C' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '71D13275-0BD3-4D79-B618-7DBC627B7694' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '4CB75EEE-2F95-4B48-9B03-0A19878FD58C' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '4B98E948-32C3-4C0F-B711-44DC53B6496A' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '49E6A5A8-877A-431D-B160-373C7963C2BF' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '327EE35F-BC83-4BA0-81D6-35C699E707EC' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '2FE2360F-3495-433C-BAD3-719F0ADF1399' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '0503C3E7-F80C-43D0-83CB-E44B830569B6' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_cns)) 
+   END AS s_cnr_prs_snt_cns,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+---> READ: Comorbilidad
+
+SELECT 
+   s_fnt_prs_qst_cmb ,
+   CASE WHEN s_fnt_prs_qst_cmb ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_cmb = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_cmb)) 
+   END AS s_gnr_prs_qst_cmb,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_cmb_enf_crd_vsc,
+   CASE WHEN s_fnt_prs_cmb_enf_crd_vsc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-11-06T14:23:50' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-11-05T14:00:15' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-29T15:53:37' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-28T14:31:30' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-28T14:18:54' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T16:27:00' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T16:12:20' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T15:52:25' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T15:46:56' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T14:04:16' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-26T15:26:57' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-26T13:29:24' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_crd_vsc)) 
+   END AS s_gnr_prs_cmb_enf_crd_vsc,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+SELECT 
+   s_fnt_prs_cmb_dbt ,
+   CASE WHEN s_fnt_prs_cmb_dbt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_dbt = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_dbt)) 
+   END AS s_gnr_prs_cmb_dbt,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_cmb_hpr ,
+   CASE WHEN s_fnt_prs_cmb_hpr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '9104' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8343' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8316' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8045' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8025' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7989' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7975' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7682' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7315' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7121' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '11037' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '11037' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '10435' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_hpr)) 
+   END AS s_gnr_prs_cmb_hpr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+SELECT 
+   s_fnt_prs_cmb_obs_svr ,
+   CASE WHEN s_fnt_prs_cmb_obs_svr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_obs_svr = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_obs_svr)) 
+   END AS s_gnr_prs_cmb_obs_svr,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_cmb_enf_rnl_isf ,
+   CASE WHEN s_fnt_prs_cmb_enf_rnl_isf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_rnl_isf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_rnl_isf)) 
+   END AS s_gnr_prs_cmb_enf_rnl_isf,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_cmb_enf_hpt_isf ,
+   CASE WHEN s_fnt_prs_cmb_enf_hpt_isf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_hpt_isf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_hpt_isf)) 
+   END AS s_gnr_prs_cmb_enf_hpt_isf,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+SELECT 
+   s_fnt_prs_cmb_enf_plm_asm ,
+   CASE WHEN s_fnt_prs_cmb_enf_plm_asm ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_plm_asm = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_plm_asm)) 
+   END AS s_gnr_prs_cmb_enf_plm_asm,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+---> READ: unidad que notifica
+
+SELECT 
+   s_fnt_unt_ntf ,
+   CASE WHEN s_fnt_unt_ntf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_unt_ntf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_unt_ntf)) 
+   END AS s_gnr_unt_ntf,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+---> READ: embarazo
+SELECT 
+   s_fnt_prs_emb ,
+   CASE WHEN s_fnt_prs_emb ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'X=' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'X' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'TUNGURAHUA - AMBATO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'SANTO DOMINGO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'SAN JUAN' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'RIOBAMBA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'PASTAZA - PUYO- SANTA CLARA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'ORIENTE' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NO APLICA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NINGUNO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NINGUNA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'N/A' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'IBARRA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = '-' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_emb)) 
+   END AS s_gnr_prs_emb,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+
+SELECT 
+   s_fnt_prs_emb_nmb ,
+   CASE WHEN s_fnt_prs_emb_nmb ISNULL THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '#NULL!' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '-' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'SI' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NO APLICA' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'X' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NO' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NINGUNO' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NINGUNA' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'N/A' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '8 SEMANAS' THEN '8'
+        WHEN s_fnt_prs_emb_nmb = '36,1' THEN '36'
+        WHEN s_fnt_prs_emb_nmb = '24 SEM' THEN '24'       
+        WHEN s_fnt_prs_emb_nmb ILIKE '%/%' THEN '-99'        
+   ELSE BTRIM(UPPER(s_fnt_prs_emb_nmb)) 
+   END::SMALLINT AS i_gnr_prs_emb_nmb,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 DESC;
+
+---> READ: Laboratorio
+
+
+SELECT 
+   d_fnt_prs_dte_att,
+   s_fnt_lbr_nme,
+   s_fnt_smp_rsl,
+   CASE WHEN d_fnt_prs_dte_att BETWEEN '2021-01-01' AND '2021-05-07' AND s_fnt_smp_rsl NOTNULL THEN 'PUCE'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-05-20' AND '2021-10-07' AND s_fnt_smp_rsl NOTNULL THEN 'ANTIGENO'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-01-01' AND '2021-05-07' AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-05-20' AND '2021-10-07' AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+        WHEN s_fnt_lbr_nme ISNULL AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+   ELSE BTRIM(UPPER(s_fnt_lbr_nme)) 
+   END AS s_gnr_lbr_nme,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1,2,3
+ORDER BY 1 ASC;
+---> READ: Tipo de muestra
+SELECT 
+   s_fnt_smp_tpe,
+   CASE WHEN s_fnt_smp_tpe ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_smp_tpe = 'H.N.' THEN 'HISOPADO NASOFARINGEO'
+   ELSE btrim(upper(s_fnt_smp_tpe))
+   END s_gnr_smp_tpe,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1
+ORDER BY 1 ASC;
+
+
+--->READ: Fecha de toma
+
+CREATE OR REPLACE FUNCTION dta_uio.d_dte_tke(s_fnt_smp_dte_tke text)
+ RETURNS date
+ LANGUAGE plpgsql
+AS $function$ 
+DECLARE
+d_dte date;
+BEGIN
+d_dte := (SELECT
+  ((CASE WHEN split_part(s_fnt_smp_dte_tke,'-',3)::integer > 1000  THEN split_part(s_fnt_smp_dte_tke,'-',3)::integer
+  ELSE split_part(s_fnt_smp_dte_tke,'-',1)::integer
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(s_fnt_smp_dte_tke,'-',2)::integer > 12  THEN split_part(s_fnt_smp_dte_tke,'-',1)::integer 
+  ELSE split_part(s_fnt_smp_dte_tke,'-',2)::integer
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(s_fnt_smp_dte_tke,'-',3)::integer < 1000 THEN split_part(s_fnt_smp_dte_tke,'-',3)::integer
+       WHEN split_part(s_fnt_smp_dte_tke,'-',2)::integer > 12 THEN split_part(s_fnt_smp_dte_tke,'-',2)::integer
+  ELSE split_part(s_fnt_smp_dte_tke,'-',1)::integer
+  END))::date); 
+RETURN d_dte;
+END;
+$function$
+;
+
+SELECT dta_uio.d_dte_tke('01-10-2021');
+
+SELECT 
+   d_fnt_prs_dte_att,
+   s_fnt_smp_dte_tke,
+   s_fnt_smp_rsl,
+   (REPLACE(CASE WHEN s_fnt_smp_dte_tke ISNULL AND s_fnt_smp_rsl IS NULL THEN '1900-01-01' WHEN s_fnt_smp_dte_tke ISNULL THEN d_fnt_prs_dte_att::TEXT 
+        WHEN length(btrim(s_fnt_smp_dte_tke)) BETWEEN 8 AND 9 THEN d_fnt_prs_dte_att::TEXT WHEN s_fnt_smp_dte_tke ILIKE '%Sep%' THEN REPLACE(s_fnt_smp_dte_tke,'Sep','09')
+        WHEN s_fnt_smp_dte_tke ILIKE '%May%' THEN REPLACE(s_fnt_smp_dte_tke,'May','05') WHEN s_fnt_smp_dte_tke ILIKE '%Aug%' THEN REPLACE(s_fnt_smp_dte_tke,'Aug','08')
+        WHEN s_fnt_smp_dte_tke ILIKE '%Jan%' THEN REPLACE(s_fnt_smp_dte_tke,'Jan','01') WHEN s_fnt_smp_rsl NOTNULL THEN (CASE WHEN length(s_fnt_smp_dte_tke)> 10 THEN LEFT(s_fnt_smp_dte_tke,10) ELSE s_fnt_smp_dte_tke END)  
+   ELSE s_fnt_smp_dte_tke END,'/','-')),
+   dta_uio.d_dte_tke((REPLACE(CASE WHEN s_fnt_smp_dte_tke ISNULL AND s_fnt_smp_rsl IS NULL THEN '1900-01-01' WHEN s_fnt_smp_dte_tke ISNULL THEN d_fnt_prs_dte_att::TEXT 
+        WHEN length(btrim(s_fnt_smp_dte_tke)) BETWEEN 8 AND 9 THEN d_fnt_prs_dte_att::TEXT WHEN s_fnt_smp_dte_tke ILIKE '%Sep%' THEN REPLACE(s_fnt_smp_dte_tke,'Sep','09')
+        WHEN s_fnt_smp_dte_tke ILIKE '%May%' THEN REPLACE(s_fnt_smp_dte_tke,'May','05') WHEN s_fnt_smp_dte_tke ILIKE '%Aug%' THEN REPLACE(s_fnt_smp_dte_tke,'Aug','08')
+        WHEN s_fnt_smp_dte_tke ILIKE '%Jan%' THEN REPLACE(s_fnt_smp_dte_tke,'Jan','01') WHEN s_fnt_smp_rsl NOTNULL THEN (CASE WHEN length(s_fnt_smp_dte_tke)> 10 THEN LEFT(s_fnt_smp_dte_tke,10) ELSE s_fnt_smp_dte_tke END)  
+   ELSE s_fnt_smp_dte_tke END,'/','-'))) AS d_gnr_smp_dte_tke,
+   count(*)
+FROM dta_uio.data_gnr
+GROUP BY 1,2,3
+ORDER BY 4 DESC ;
+
+
+--->READ: parametro
+SELECT 
+s_fnt_smp_prm,
+s_fnt_smp_rsl,
+CASE WHEN s_fnt_smp_prm ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_smp_prm = '0' THEN 'SE DESCONOCE'
+     WHEN s_fnt_smp_prm = 'ANTIGENOS' THEN 'ANTIGENO'
+     WHEN s_fnt_smp_prm = 'COVID-19 PCR' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'DETECCION DE SARS COV 2 POR PCR EN TIEMPO REAL' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'DETECCIÓN DE SARS COV 2 POR PCR EN TIEMPO REAL' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'GEN RDRP' THEN 'RT-PCR --> SARS-CoV-2 (GEN RDRP)'
+     WHEN s_fnt_smp_prm = 'GEN ORF1AB' THEN 'RT-PCR --> SARS-CoV-2 (GEN ORF1AB)'
+     WHEN s_fnt_smp_prm = 'GEN ORF1A' THEN 'RT-PCR --> SARS-CoV-2 (GEN ORF1A)'
+     WHEN s_fnt_smp_prm = 'GEN E' THEN 'RT-PCR --> SARS-CoV-2 (GEN E)'
+     WHEN s_fnt_smp_prm = 'GEN N' THEN 'RT-PCR --> SARS-CoV-2 (GEN N)'
+ELSE BTRIM(UPPER(s_fnt_smp_prm))
+END AS s_gnr_smp_prm, 
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1,2
+ORDER BY 1;
+
+--->READ: resultado
+SELECT 
+s_fnt_smp_rsl,
+CASE WHEN s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+ELSE s_fnt_smp_rsl
+END AS s_gnr_smp_rsl,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_smp_igm ,
+CASE WHEN s_fnt_smp_igm ISNULL THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%@%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%SARS-COV-2RAPID ANTIGEN TEST%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%NO TIENE%' THEN 'NEGATIVO'
+ELSE s_fnt_smp_igm
+END AS s_gnr_smp_igm,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_smp_igg ,
+CASE WHEN s_fnt_smp_igg ISNULL THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%/%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%-%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%NO TIENE%' THEN 'NEGATIVO'
+     WHEN s_fnt_smp_igg ILIKE '%9%' THEN 'ATENCION'
+ELSE s_fnt_smp_igg
+END AS s_gnr_smp_igg,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_eml ,
+CASE WHEN s_fnt_prs_eml ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(lower(s_fnt_prs_eml))
+END AS s_gnr_prs_eml,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_01,
+CASE WHEN s_fnt_prs_enc_01 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_01))
+END AS s_gnr_prs_enc_01,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_02,
+CASE WHEN s_fnt_prs_enc_02 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_02))
+END AS s_gnr_prs_enc_02,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_03,
+CASE WHEN s_fnt_prs_enc_03 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_03))
+END AS s_gnr_prs_enc_03,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_04,
+CASE WHEN s_fnt_prs_enc_04 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_04))
+END AS s_gnr_prs_enc_04,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_05,
+CASE WHEN s_fnt_prs_enc_05 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_05))
+END AS s_gnr_prs_enc_05,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_06,
+CASE WHEN s_fnt_prs_enc_06 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_06))
+END AS s_gnr_prs_enc_06,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_enc_07,
+CASE WHEN s_fnt_prs_enc_07 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_07))
+END AS s_gnr_prs_enc_07,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_asl ,
+CASE WHEN s_fnt_prs_asl ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_asl))
+END AS s_gnr_prs_asl,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
+SELECT 
+s_fnt_prs_rsp_lnd ,
+CASE WHEN s_fnt_prs_rsp_lnd ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '0' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '06' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '10' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '16' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '18' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '20' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '31' THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_rsp_lnd))
+END AS s_gnr_prs_rsp_lnd,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+---> READ: detalle discapacidad
+SELECT 
+s_fnt_prs_dtl ,
+CASE WHEN s_fnt_prs_dtl ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_dtl = '' THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_dtl))
+END AS s_gnr_prs_dsc_dtl,
+Count(*)
+FROM dta_uio.data_gnr 
+GROUP BY 1
+ORDER BY 1;
+
 ---> READ: Construir consulta actualizada
+DROP MATERIALIZED VIEW dta_uio.uio_data_gnr;
+CREATE MATERIALIZED VIEW dta_uio.uio_data_gnr AS 
 SELECT 
  i_fnt_yr,
  i_fnt_epi_wk,
@@ -1099,9 +1897,437 @@ SELECT
   dta_uio.sif_sql(s_dnr_prs_prv_nme ISNULL OR s_dnr_prs_prv_nme = '', 'SE DESCONOCE', s_dnr_prs_prv_nme) AS s_gnr_dnr_prs_prv_nme,
   dta_uio.sif_sql(s_dnr_prs_cnt_nme ISNULL OR s_dnr_prs_cnt_nme = '', 'SE DESCONOCE', s_dnr_prs_cnt_nme) AS s_gnr_dnr_prs_cnt_nme,
   dta_uio.sif_sql(s_dnr_prs_prq_nme ISNULL OR s_dnr_prs_prq_nme = '', 'SE DESCONOCE', s_dnr_prs_prq_nme) AS s_gnr_dnr_prs_prq_nme,
-  
+  dta_uio.s_trv_qst(s_fnt_prs_trv) AS s_gnr_prs_trv_qst,
+  ((CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT > 1000  THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT > 12  THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT 
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT
+  END)::TEXT||'-'||
+  (CASE WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT < 1000 THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',3)::SMALLINT
+       WHEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT > 12 THEN split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',2)::SMALLINT
+  ELSE split_part(btrim(REPLACE(dta_uio.d_trv_qst(s_fnt_prs_trv_dte, s_fnt_prs_trv_ste),'/','-')),'-',1)::SMALLINT
+  END))::date AS d_gnr_prs_trv_dte,
+  (CASE WHEN s_fnt_prs_trv_ste = '' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '-' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '#######' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = ' ' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '6' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '13' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '24' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-04' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-03' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-07-01' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-06-30' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-06-25' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_trv_ste = '2021-05-03' THEN 'SE DESCONOCE'
+  ELSE BTRIM(UPPER(s_fnt_prs_trv_ste))
+  END) AS s_gnr_prs_trv_ste,
+  CASE WHEN s_fnt_sgn_prs_stl='' THEN -99
+     WHEN s_fnt_sgn_prs_stl ISNULL THEN -99
+     WHEN s_fnt_sgn_prs_stl='143-' THEN 143
+     WHEN s_fnt_sgn_prs_stl='10p' THEN 100
+     WHEN s_fnt_sgn_prs_stl='130 0' THEN 130
+     WHEN s_fnt_sgn_prs_stl='13q' THEN 130
+     WHEN s_fnt_sgn_prs_stl='1p2' THEN 100
+     WHEN s_fnt_sgn_prs_stl='126 5' THEN 126
+     WHEN s_fnt_sgn_prs_stl='1p0' THEN 100
+     WHEN s_fnt_sgn_prs_stl='14q' THEN 140
+     WHEN s_fnt_sgn_prs_stl='13r' THEN 130
+     WHEN s_fnt_sgn_prs_stl='109t76' THEN 109
+     WHEN s_fnt_sgn_prs_stl='100}' THEN 100
+     WHEN s_fnt_sgn_prs_stl='12p' THEN 120
+     WHEN length(s_fnt_sgn_prs_stl)>3 THEN left(s_fnt_sgn_prs_stl,3)::SMALLINT
+ELSE s_fnt_sgn_prs_stl::integer
+END AS i_gnr_sgn_prs_stl,
+CASE WHEN s_fnt_sgn_prs_dst='' THEN -99
+     WHEN s_fnt_sgn_prs_dst ISNULL THEN -99
+     WHEN s_fnt_sgn_prs_dst = '6(' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '8)' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '8''' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '7(' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '(72' THEN 72
+     WHEN s_fnt_sgn_prs_dst = '(7' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '7,' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '(1' THEN 10
+     WHEN s_fnt_sgn_prs_dst = '72.' THEN 72
+     WHEN s_fnt_sgn_prs_dst = '&80' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '70mw' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '8O' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '6O' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '7O' THEN 70
+     WHEN s_fnt_sgn_prs_dst = 'L75' THEN 75
+     WHEN s_fnt_sgn_prs_dst = '£0' THEN -99
+     WHEN s_fnt_sgn_prs_dst = '6)' THEN 60
+     WHEN s_fnt_sgn_prs_dst = '84!' THEN 84
+     WHEN s_fnt_sgn_prs_dst = '8£' THEN 83
+     WHEN s_fnt_sgn_prs_dst = '78¿7' THEN 78
+     WHEN s_fnt_sgn_prs_dst = '68|' THEN 68
+     WHEN s_fnt_sgn_prs_dst = '8(' THEN 80
+     WHEN s_fnt_sgn_prs_dst = '*97' THEN 97
+     WHEN s_fnt_sgn_prs_dst = '&4' THEN 84
+     WHEN s_fnt_sgn_prs_dst = '7)' THEN 70
+     WHEN s_fnt_sgn_prs_dst = '6$' THEN 65
+     WHEN substring(s_fnt_sgn_prs_dst from 1 for 1) = '7' AND length(s_fnt_sgn_prs_dst)>2 THEN RIGHT(s_fnt_sgn_prs_dst,2)::SMALLINT
+     WHEN length(s_fnt_sgn_prs_dst) > 2 AND s_fnt_sgn_prs_dst::integer > 120 THEN RIGHT(s_fnt_sgn_prs_dst,2)::SMALLINT
+ELSE s_fnt_sgn_prs_dst::integer
+END AS i_gnr_sgn_prs_dst,
+CASE WHEN i_fnt_sgn_frc_crd ISNULL THEN -99 ELSE i_fnt_sgn_frc_crd END AS i_gnr_sgn_frc_crd,
+CASE WHEN i_fnt_sgn_frc_rsp ISNULL THEN -99 ELSE i_fnt_sgn_frc_rsp END AS i_gnr_sgn_frc_rsp,
+CASE WHEN i_fnt_sgn_str_oxg ISNULL THEN -99 ELSE i_fnt_sgn_str_oxg END AS i_gnr_sgn_str_oxg,
+CASE WHEN r_fnt_sgn_tpr ISNULL THEN -99 ELSE r_fnt_sgn_tpr END AS r_gnr_sgn_tpr,
+CASE WHEN s_fnt_prs_qst_dsc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = ' ' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '1' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '2' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dsc = '3' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_dsc))
+   END AS s_gnr_prs_qst_dsc,
+CASE WHEN s_fnt_prs_dtl ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_dtl = '' THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_dtl))
+END AS s_gnr_prs_dsc_dtl,
+CASE WHEN s_fnt_prs_qst_cse ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_cse = 'S' THEN 'SI'
+        WHEN s_fnt_prs_qst_cse = 'HatenidocontactoconuncasoconocidodeCOVID19probableoconfirmado' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_cse))
+   END AS s_gnr_prs_qst_cse,
+CASE WHEN s_fnt_prs_qst_snt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMÁTICO' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMATICI' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMATICA' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOMAS' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SINTOM_TICO' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'SI' THEN 'SINTOMATICO'
+        WHEN s_fnt_prs_qst_snt = 'ASINTOMÁTICO' THEN 'ASINTOMATICO'
+   ELSE btrim(upper(s_fnt_prs_qst_snt))
+   END AS s_gnr_prs_qst_snt,
+CASE WHEN s_fnt_prs_qst_dgn ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = ' ' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44383' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44382' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44381' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44380' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44379' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44378' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44377' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44375' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44348' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_dgn = '44229' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_dgn)) 
+   END s_gnr_prs_qst_dgn,
+CASE WHEN s_fnt_prs_qst_ifc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '1/27/1900' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2/2/1900' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '0999462938 ASIST.' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2118103' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2607700' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2666189' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '2911054' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3682562' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3097473' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3084767' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3084268' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3074416' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '3036546' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '997743959' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '995034093' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '994423889' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '991384737' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '983911618' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '982807786' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_ifc = '979404682' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_ifc)) 
+   END AS s_gnr_prs_qst_ifc,
+CASE WHEN s_fnt_prs_snt_fbr ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_fbr)) 
+   END AS s_gnr_prs_snt_fbr,
+CASE WHEN s_fnt_prs_snt_gst_olf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_gst_olf ='SIO' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_gst_olf)) 
+   END AS s_gnr_prs_snt_gst_olf,
+CASE WHEN s_fnt_prs_snt_tos ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_tos ='AI' THEN 'SI'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_tos)) 
+   END AS s_gnr_prs_snt_tos,
+CASE WHEN s_fnt_prs_snt_dsn ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dsn)) 
+   END AS s_gnr_prs_snt_dsn,
+CASE WHEN s_fnt_prs_snt_dlr_grg ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr_grg)) 
+   END AS s_gnr_prs_snt_dlr_grg,
+CASE WHEN s_fnt_prs_snt_dlr_nse_vmt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr_nse_vmt = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr_nse_vmt)) 
+   END AS s_gnr_prs_snt_nse_vmt,
+CASE WHEN s_fnt_prs_snt_drr ISNULL THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_drr)) 
+   END AS s_gnr_prs_snt_drr,
+CASE WHEN s_fnt_prs_snt_esc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_esc = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_esc)) 
+   END AS s_gnr_prs_snt_esc,
+CASE WHEN s_fnt_prs_snt_cnf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cnf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_cnf)) 
+   END AS s_gnr_prs_snt_cnf,
+CASE WHEN s_fnt_prs_snt_dlr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '135453684' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '135220247' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133496559' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133147206' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '133140273' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132781030' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132774809' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132764695' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132762302' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132701232' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132329994' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_dlr = '132271360' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_dlr)) 
+   END AS s_gnr_prs_snt_dlr,
+CASE WHEN s_fnt_prs_snt_cns ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'EA7AD808-51FC-48FC-91C5-EBD072C19279' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'C0CBE245-117F-46AB-92A4-C06254A04D15' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'B2F91E4C-8C74-425C-9004-536051D628A1' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = 'AB6B8980-88CB-4A39-BA78-61A1CE420827' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '886DFA62-408D-45F4-A011-F06CFE62AA8C' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '71D13275-0BD3-4D79-B618-7DBC627B7694' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '4CB75EEE-2F95-4B48-9B03-0A19878FD58C' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '4B98E948-32C3-4C0F-B711-44DC53B6496A' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '49E6A5A8-877A-431D-B160-373C7963C2BF' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '327EE35F-BC83-4BA0-81D6-35C699E707EC' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '2FE2360F-3495-433C-BAD3-719F0ADF1399' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_snt_cns = '0503C3E7-F80C-43D0-83CB-E44B830569B6' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_snt_cns)) 
+   END AS s_cnr_prs_snt_cns,
+CASE WHEN s_fnt_prs_qst_cmb ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_qst_cmb = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_qst_cmb)) 
+   END AS s_gnr_prs_qst_cmb,
+CASE WHEN s_fnt_prs_cmb_enf_crd_vsc ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-11-06T14:23:50' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-11-05T14:00:15' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-29T15:53:37' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-28T14:31:30' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-28T14:18:54' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T16:27:00' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T16:12:20' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T15:52:25' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T15:46:56' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-27T14:04:16' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-26T15:26:57' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_crd_vsc = '2020-10-26T13:29:24' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_crd_vsc)) 
+   END AS s_gnr_prs_cmb_enf_crd_vsc,
+CASE WHEN s_fnt_prs_cmb_dbt ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_dbt = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_dbt)) 
+   END AS s_gnr_prs_cmb_dbt,
+CASE WHEN s_fnt_prs_cmb_hpr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '9104' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8343' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8316' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8045' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '8025' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7989' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7975' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7682' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7315' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '7121' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '11037' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '11037' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_hpr = '10435' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_hpr)) 
+   END AS s_gnr_prs_cmb_hpr,
+CASE WHEN s_fnt_prs_cmb_obs_svr ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_obs_svr = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_obs_svr)) 
+   END AS s_gnr_prs_cmb_obs_svr,
+CASE WHEN s_fnt_prs_cmb_enf_rnl_isf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_rnl_isf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_rnl_isf)) 
+   END AS s_gnr_prs_cmb_enf_rnl_isf,
+CASE WHEN s_fnt_prs_cmb_enf_hpt_isf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_hpt_isf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_hpt_isf)) 
+   END AS s_gnr_prs_cmb_enf_hpt_isf,
+CASE WHEN s_fnt_prs_cmb_enf_plm_asm ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_cmb_enf_plm_asm = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_cmb_enf_plm_asm)) 
+   END AS s_gnr_prs_cmb_enf_plm_asm,
+CASE WHEN s_fnt_unt_ntf ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_unt_ntf = '' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_unt_ntf)) 
+   END AS s_gnr_unt_ntf,
+CASE WHEN s_fnt_prs_emb ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = '' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'X=' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'X' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'TUNGURAHUA - AMBATO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'SANTO DOMINGO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'SAN JUAN' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'RIOBAMBA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'PASTAZA - PUYO- SANTA CLARA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'ORIENTE' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NO APLICA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NINGUNO' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'NINGUNA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'N/A' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = 'IBARRA' THEN 'SE DESCONOCE'
+        WHEN s_fnt_prs_emb = '-' THEN 'SE DESCONOCE'
+   ELSE BTRIM(UPPER(s_fnt_prs_emb)) 
+   END AS s_gnr_prs_emb,
+CASE WHEN s_fnt_prs_emb_nmb ISNULL THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '#NULL!' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '-' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'SI' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NO APLICA' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'X' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NO' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NINGUNO' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'NINGUNA' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = 'N/A' THEN '-99'
+        WHEN s_fnt_prs_emb_nmb = '8 SEMANAS' THEN '8'
+        WHEN s_fnt_prs_emb_nmb = '36,1' THEN '36'
+        WHEN s_fnt_prs_emb_nmb = '24 SEM' THEN '24'       
+        WHEN s_fnt_prs_emb_nmb ILIKE '%/%' THEN '-99'        
+   ELSE BTRIM(UPPER(s_fnt_prs_emb_nmb)) 
+   END::SMALLINT AS i_gnr_prs_emb_nmb,
+CASE WHEN d_fnt_prs_dte_att BETWEEN '2021-01-01' AND '2021-05-07' AND s_fnt_smp_rsl NOTNULL THEN 'PUCE'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-05-20' AND '2021-10-07' AND s_fnt_smp_rsl NOTNULL THEN 'ANTIGENO'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-01-01' AND '2021-05-07' AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+        WHEN d_fnt_prs_dte_att BETWEEN '2021-05-20' AND '2021-10-07' AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+        WHEN s_fnt_lbr_nme ISNULL AND s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+   ELSE BTRIM(UPPER(s_fnt_lbr_nme)) 
+   END AS s_gnr_lbr_nme,
+CASE WHEN s_fnt_smp_tpe ISNULL THEN 'SE DESCONOCE'
+        WHEN s_fnt_smp_tpe = 'H.N.' THEN 'HISOPADO NASOFARINGEO'
+   ELSE btrim(upper(s_fnt_smp_tpe))
+   END s_gnr_smp_tpe,
+dta_uio.d_dte_tke((REPLACE(CASE WHEN s_fnt_smp_dte_tke ISNULL AND s_fnt_smp_rsl IS NULL THEN '1900-01-01' WHEN s_fnt_smp_dte_tke ISNULL THEN d_fnt_prs_dte_att::TEXT 
+        WHEN length(btrim(s_fnt_smp_dte_tke)) BETWEEN 8 AND 9 THEN d_fnt_prs_dte_att::TEXT WHEN s_fnt_smp_dte_tke ILIKE '%Sep%' THEN REPLACE(s_fnt_smp_dte_tke,'Sep','09')
+        WHEN s_fnt_smp_dte_tke ILIKE '%May%' THEN REPLACE(s_fnt_smp_dte_tke,'May','05') WHEN s_fnt_smp_dte_tke ILIKE '%Aug%' THEN REPLACE(s_fnt_smp_dte_tke,'Aug','08')
+        WHEN s_fnt_smp_dte_tke ILIKE '%Jan%' THEN REPLACE(s_fnt_smp_dte_tke,'Jan','01') WHEN s_fnt_smp_rsl NOTNULL THEN (CASE WHEN length(s_fnt_smp_dte_tke)> 10 THEN LEFT(s_fnt_smp_dte_tke,10) ELSE s_fnt_smp_dte_tke END)  
+   ELSE s_fnt_smp_dte_tke END,'/','-'))) AS d_gnr_smp_dte_tke,
+CASE WHEN s_fnt_smp_prm ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_smp_prm = '0' THEN 'SE DESCONOCE'
+     WHEN s_fnt_smp_prm = 'ANTIGENOS' THEN 'ANTIGENO'
+     WHEN s_fnt_smp_prm = 'COVID-19 PCR' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'DETECCION DE SARS COV 2 POR PCR EN TIEMPO REAL' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'DETECCIÓN DE SARS COV 2 POR PCR EN TIEMPO REAL' THEN 'RT-PCR --> SARS-CoV-2'
+     WHEN s_fnt_smp_prm = 'GEN RDRP' THEN 'RT-PCR --> SARS-CoV-2 (GEN RDRP)'
+     WHEN s_fnt_smp_prm = 'GEN ORF1AB' THEN 'RT-PCR --> SARS-CoV-2 (GEN ORF1AB)'
+     WHEN s_fnt_smp_prm = 'GEN ORF1A' THEN 'RT-PCR --> SARS-CoV-2 (GEN ORF1A)'
+     WHEN s_fnt_smp_prm = 'GEN E' THEN 'RT-PCR --> SARS-CoV-2 (GEN E)'
+     WHEN s_fnt_smp_prm = 'GEN N' THEN 'RT-PCR --> SARS-CoV-2 (GEN N)'
+ELSE BTRIM(UPPER(s_fnt_smp_prm))
+END AS s_gnr_smp_prm, 
+CASE WHEN s_fnt_smp_rsl ISNULL THEN 'ATENCION'
+ELSE s_fnt_smp_rsl
+END AS s_gnr_smp_rsl,
+CASE WHEN s_fnt_smp_igm ISNULL THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%@%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%SARS-COV-2RAPID ANTIGEN TEST%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igm ILIKE '%NO TIENE%' THEN 'NEGATIVO'
+ELSE s_fnt_smp_igm
+END AS s_gnr_smp_igm,
+CASE WHEN s_fnt_smp_igg ISNULL THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%/%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%-%' THEN 'ATENCION'
+     WHEN s_fnt_smp_igg ILIKE '%NO TIENE%' THEN 'NEGATIVO'
+     WHEN s_fnt_smp_igg ILIKE '%9%' THEN 'ATENCION'
+ELSE s_fnt_smp_igg
+END AS s_gnr_smp_igg,
+CASE WHEN s_fnt_prs_eml ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(lower(s_fnt_prs_eml))
+END AS s_gnr_prs_eml,
+CASE WHEN s_fnt_prs_enc_01 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_01))
+END AS s_gnr_prs_enc_01,
+CASE WHEN s_fnt_prs_enc_02 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_02))
+END AS s_gnr_prs_enc_02,
+CASE WHEN s_fnt_prs_enc_03 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_03))
+END AS s_gnr_prs_enc_03,
+CASE WHEN s_fnt_prs_enc_04 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_04))
+END AS s_gnr_prs_enc_04,
+CASE WHEN s_fnt_prs_enc_05 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_05))
+END AS s_gnr_prs_enc_05,
+CASE WHEN s_fnt_prs_enc_06 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_06))
+END AS s_gnr_prs_enc_06,
+CASE WHEN s_fnt_prs_enc_07 ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_enc_07))
+END AS s_gnr_prs_enc_07,
+CASE WHEN s_fnt_prs_asl ISNULL THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_asl))
+END AS s_gnr_prs_asl,
+CASE WHEN s_fnt_prs_rsp_lnd ISNULL THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '0' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '06' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '10' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '16' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '18' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '20' THEN 'SE DESCONOCE'
+     WHEN s_fnt_prs_rsp_lnd = '31' THEN 'SE DESCONOCE'
+ELSE btrim(upper(s_fnt_prs_rsp_lnd))
+END AS s_gnr_prs_rsp_lnd
 FROM dta_uio.data_gnr
 WHERE d_fnt_prs_dte_att NOTNULL 
 ORDER BY 1,2,3;
 
+SELECT * FROM dta_uio.uio_data_gnr LIMIT 10;
 
+
+  
+---> READ: Verificar los atributos y su tipo de tabla o vista
+SELECT
+    t1.COLUMN_NAME AS s_tbl_atr,
+    t1.COLUMN_DEFAULT AS s_tbl_dlf,
+    t1.IS_NULLABLE AS s_tbl_nll,
+    t1.DATA_TYPE AS s_tbl_tpe,
+    COALESCE(t1.NUMERIC_PRECISION,
+    t1.CHARACTER_MAXIMUM_LENGTH) AS i_tbl_lgt,
+    PG_CATALOG.COL_DESCRIPTION(t2.OID,
+    t1.DTD_IDENTIFIER::int) AS i_tbl_dsc
+FROM 
+    INFORMATION_SCHEMA.COLUMNS t1
+    INNER JOIN PG_CLASS t2 ON (t2.RELNAME = t1.TABLE_NAME)
+WHERE 
+    t1.TABLE_SCHEMA = 'public' AND
+    t1.TABLE_NAME = 'tst_ptt'
+ORDER BY
+t1.ORDINAL_POSITION;
+
+SELECT * FROM PG_CLASS ORDER BY 2;
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS ORDER BY 2,3;
+
+SELECT * FROM information_schema.views WHERE table_name = 'uio_data_gnr';
+
+SELECT view_definition
+FROM information_schema.views
+WHERE table_schema = 'dta_uio'
+AND table_name = 'uio_data_gnr';
+
+SELECT *
+FROM materialized_views
+WHERE table_schema = 'dta_uio'
+AND table_name = 'uio_data_gnr';
+
+SELECT view_definition
+FROM information_schema."views" 
+WHERE table_schema = 'public '
+AND table_name = 'tst_ptt';
